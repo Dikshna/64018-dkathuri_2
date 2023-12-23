@@ -1,0 +1,128 @@
+---
+title: "QMM - Assignment 6"
+author: "Dikshna Kathuri"
+date: "2023-11-19"
+output: html_document
+---
+AP is a shipping service that guarantees overnight delivery of packages in the continental US. The company has various hubs at major cities and airports across the country. Packages are
+received at hubs, and then shipped to intermediate hubs or to their destination. The manager of the AP hub in Cleveland is concerned about labor costs and is interested in determining the most
+effective way to schedule workers. The hub operates seven days a week, and the number of packages it handles varies from one day to another. The table below provides an estimate of the number of workers needed each day of the week.
+```{r}
+library(lpSolve)
+
+DAY_AND_WORKERS<- matrix(c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday",18,27,22,26,25,21,19),ncol = 2, byrow = F) 
+colnames(DAY_AND_WORKERS) = c("Day","Workers_Required")
+as.table(DAY_AND_WORKERS)
+
+```
+Package handlers at AP are guaranteed a five-day work week with two consecutive days off. The base wage for the handlers is $750 per week. Workers working on Saturday or Sunday receive an additional $25 per day. The possible shifts and salaries for package handlers are:
+```{r}
+Shift_DaysOff_Wage <- matrix(c(1,2,3,4,5,6,7,"Sunday and Monday","Monday and Tuesday","Tuesday and Wednesday","Wednesday and Thursday","Thursday and Friday","Friday and Saturday","Saturday and Sunday","$775","$800","$800","$800","$800","$775","$750"), ncol = 3, byrow = F)
+
+colnames(Shift_DaysOff_Wage) <- c("Shift", "Days_Off", "Wage")
+
+as.table(Shift_DaysOff_Wage)
+```
+Questions:
+The manager wants to keep the total wage expenses as low as possible while ensuring that there are sufficient number of workers available each day. 
+1.) Formulate and solve the problem. 
+2.) Solve the problem in R markdown.
+3.) Find the total cost and the number of workers available each day?
+
+Solution:
+Formulating and solving the LP problem
+
+Let x1,x2,x3,x4,x5,x6 & x7 = No. of workers under shift schedules with specific salaries.
+
+Objective function - 
+Min Z = 775X1+800X2+800X3+800X4+800X5+775X6+750X7
+ $$Z=775X_{1}+800{X}_2+800X_{3}+800_{X4}+800_{X5}+775_{X6}+750X_7$$
+
+Subject to the constraints - 
+
+$$0X_{1}+1X_{2}+1X_{3}+1X_{4}+1X_{5}+1X_{6}+0X_{7}>=18$$
+
+$$0X_{1}+0X_{2}+1X_{3}+1X_{4}+1X_{5}+1X_{6}+1X_{7}>=27$$
+$$1X_{1}+0X_{2}+0X_{3}+1X_{4}+1X_{5}+1X_{6}+1X_{7}>=22$$
+$$1X_{1}+1X_{2}+0X_{3}+0X_{4}+1X_{5}+1X_{6}+1X_{7}>=26$$
+$$1X_{1}+1X_{2}+1X_{3}+0X_{4}+0X_{5}+1X_{6}+1X_{7}>=25$$
+
+$$1X_{1}+1X_{2}+1X_{3}+1X_{4}+0X_{5}+0X_{6}+1X_{7}>=21$$
+
+
+$$1X_{1}+1X_{2}+1X_{3}+1X_{4}+1X_{5}+0X_{6}+0X_{7}>=19$$
+
+All values must be greater or equal to zero, Non-Negative constraints -
+$$X_{1:7} ≥ 0 $$
+Let's solve the problem using "R", and by using above mentioned library "lpsolve". As this problem needs to be solved by Integer Programming, we need to use the function 'int.vec', which says that all the decision variables should be of integers and not fractions.
+
+```{r}
+obj.f<-c(775,800,800,800,800,775,750)
+cons<-matrix(c(0,1,1,1,1,1,0,
+               0,0,1,1,1,1,1,
+               1,0,0,1,1,1,1,
+               1,1,0,0,1,1,1,
+               1,1,1,0,0,1,1,
+               1,1,1,1,0,0,1,
+               1,1,1,1,1,0,0),nrow=7,byrow=TRUE)
+cons
+```
+
+```{r}
+row.signs <- rep(">=", 7)
+row.rhs <- c(18,27,22,26,25,21,19)
+integer.program_cost<-lp("min",obj.f,cons,row.signs,row.rhs,int.vec=1:9)
+integer.program_cost
+```
+```{r}
+integer.program_cost$solution
+#This shows how many workers are corresponding to each shift on respective days.
+```
+The weekly salary total is $25,675.
+
+This is the total number of employees, along with their pay and shift pattern, which are described as follows:
+```{r}
+#By using the variables from the lp model 
+Table = matrix(c(0,4,5,0,8,1,0,0,0,5,0,8,1,13,2,0,0,0,8,1,13,2,4,0,0,8,1,13,2,4,5,0,0,1,13,2,3,4,0,0,0,13,2,4,5,0,8,0,0),ncol=7,byrow=TRUE)
+
+colnames(Table) = c("Shift1", "Shift2", "Shift3", "Shift4", "Shift5", "Shift6", "Shift7")
+
+row.names(Table) = c('Sunday', 'Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday')
+
+Table
+```
+#From the above, the variables are labelled as X1,X2,X3,....,X7:
+
+#X1 = Wokers available on shift 1 = 2
+
+#X2 = Wokers available on shift 2 = 4
+
+#X3 = Wokers available on shift 3 = 5
+
+#X4 = Wokers available on shift 4 = 0
+
+#X5 = Wokers available on shift 5 = 8
+
+#X6 = Wokers available on shift 6 = 1
+
+#X7 = Wokers available on shift 7 = 13
+
+```{r}
+#The below table shows employees available each day based on the shift arrangement that reduces the overall wage cost.
+rowSums(Table)
+```
+#The no. of workers available to work each day in terms of the objective function and constraints:
+
+#Workers on Sunday: X2+X3+X4+X5+X6 >= 18,
+
+#Workers on Monday: X3+X4+X5+X6+X7 >= 27,
+
+#Workers on Tuesday: X4+X5+X6+X7+X1 >= 24,
+
+#Workers on Wednesday: X5+X6+X7+X1+X2 >= 28,
+
+#Workers on Thursday: X6+X7+X1+X2+X3 >= 25,
+
+#Workers on Friday: X7+X1+X2+X3+X4 >= 22,
+
+#Workers on Saturday: X1+X2+X3+X4+X5 >= 19
