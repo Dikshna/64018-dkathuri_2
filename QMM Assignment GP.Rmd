@@ -1,0 +1,140 @@
+---
+title: "QMM Assignment 5"
+author: "Dikshna Kathuri"
+date: "2023-11-04"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(kableExtra)
+```
+
+```{r}
+df= data.frame(Factor=c("Total Profit","Employement Level","Earning next year"),
+"1"=c(15,8,6),
+"2"=c(12,6,5),
+"3"=c(20,5,4),
+Goal=c("Maximize","=70",">=60"))
+
+df %>%
+kable(align = "c") %>%
+kable_classic() %>%
+add_header_above(header = c(" "=1,"Product"=3," "=1)) %>%
+add_header_above(header = c(" "=1,"Unit contribution"=3," "=1)) %>%
+column_spec(1,border_right = TRUE) %>%
+column_spec(4,border_right = TRUE) %>%
+column_spec(5,border_right = TRUE)
+```
+
+```{r}
+#Question.1
+```
+
+We have production rates of the first, second and the third goods as $x_1$ , $x_2$ and $x_3$. Then We can write the constraints in terms of these products as below:
+
+$8x_1 + 6x_2 + 5x_3 = 70$ \
+$6x_1 + 5x_2 + 4x_3 \ge 60$ \
+
+We can write these two constraints in deviation form as below:
+
+$y_1 = 8x_1 + 6x_2 + 5x_3 - 70$ \
+$y_2 = 6x_1 + 5x_2 + 4x_3 - 60$ \ 
+
+Where, actual employment = $8x_1 + 6x_2 + 5x_3$ and employment requirement = 70. So, $y_1$ could be positive, negative or zero depending on whether positive or negative part is greater. Similar explanations apply to other constraints.
+
+Let's define $y_i = y_i^+ - y_i^-$ 
+
+That is,
+
+$y_1 = y_1^+ - y_1^-$ \
+$y_2 = y_2^+ - y_2^-$ \
+
+Where, \
+$y_1^+$ is a positive deviation or over achievement of employment. \
+$y_1^-$ is a negative deviation or under achievement of employment. \
+$y_2^+$ is a positive deviation or over achievement of earnings. \
+$y_2^-$ is a negative deviation or under achievement of earnings.
+
+Then we can write the above two constraints as: \
+$y_1^+ - y_1^- = 8x_1 + 6x_2 + 5x_3 - 70$ \
+$y_2^+ - y_2^- = 6x_1 + 5x_2 + 4x_3 - 60$ \
+
+Some simple math yields: \
+$8x_1 + 6x_2 + 5x_3 - (y_1^+ - y_1^-) = 70$ \
+$6x_1 + 5x_2 + 4x_3 - (y_2^+ - y_2^-) = 60$
+
+```{r}
+#Question.2
+```
+
+Objective function here is to maximize the goal. The goal is to maintain stable employment at 70 and maintain earnings atleast 60 million dollars. If deviated earnings from to something below there is a penalty of 2 for each million decrease in earnings but no penalty for earnings increment (a lower bound one sided profit constraint). So total penalty from the profit
+deviation = $2y_2^-$.
+
+Similarly, if deviated either side there is penalty of 5 for increase or decrease in employment. So, total penalty from employment deviation = $5y_1^+ + 5y_1^-$.
+
+So, the Objective function is \
+$MAX Z = 15x_1 + 12x_2 + 20x_3 - 5(y_1^+ - y_1^-) - 2y_2^-$ \
+
+Subject to the constraints \
+$8x_1 + 6x_2 + 5x_3 - (y_1^+ - y_i^-) = 70$ \
+$6x_1 + 5x_2 + 4x_3 - (y_2^+ - y_2^-) = 60$ 
+
+Non-negativity of the decision variables \
+$x_1 \ge 0, x_2 \ge 0, x_3 \ge 0$ \
+$y_1^+ \ge 0,  y_1^- \ge 0, y_2^+ \ge 0, y_2^- \ge 0$
+
+```{r}
+#Question.3
+
+library(lpSolveAPI)
+
+lprec = make.lp(2,7)
+
+set.objfn(lprec, c(15,12,20,-5,5,0,-2))
+
+lp.control(lprec, sense = 'max')
+```
+```{r}
+set.row(lprec, 1, c(8,6,5,-1,1,0,0), indices = c(1,2,3,4,5,6,7))
+
+set.row(lprec, 2, c(6,5,4,0,0,-1,1), indices = c(1,2,3,4,5,6,7))
+
+rhs = c(70,60)
+
+set.rhs(lprec,rhs)
+
+set.constr.type(lprec,c("=","="))
+
+set.bounds(lprec,lower = rep(0,7))
+
+lp.rownames = c("Employment","Earnings")
+lp.colnames = c("x1","x2","x3","y1p","y1m","y2p","y2m")
+
+solve(lprec)
+```
+
+```{r}
+get.objective(lprec)
+```
+
+```{r}
+get.variables(lprec)
+```
+
+**Findings for the above goal programming problem**
+
+The LP problem was successfully solved using the specified constraints and objective function. \
+
+The optimal objective value of the LP problem is $275$. \
+
+The values of the decision variables at the optimal solution are as follows: \
+
+$x_1 = 0$ \
+$x_2 = 0$ \
+$x_3 = 15$ \
+$y_1^+ = 5$ \
+$y_1^- = 0$ \
+$y_2^+ = 0$ \
+$y_2^- = 0$ \
