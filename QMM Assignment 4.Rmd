@@ -1,0 +1,254 @@
+---
+title: "QMM Assignment-4"
+author: "Dikshna Kathuri"
+date: "2023-10-29"
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+```{r}
+library("Benchmarking")
+```
+
+```{r}
+data.frame <- matrix(c("Facility 1","Facility 2","Facility 3","Facility 4","Facility 5", "Facility 6",
+                100,300,320,500,350,340,
+                0.3,0.6,1.2,2.0,1.4,0.7,
+                15000,15000,40000,28000,20000,14000,
+                3500,20000,11000,42000,25000,15000), ncol=5, byrow=F)
+
+colnames(data.frame) <- c("DMU", "Staff_Hours_Per_Day","Supplies_Per_Day","Reimbursed_Patient_Days","Privately_Paid_Patient_Days")
+
+table.df <- as.table(data.frame)
+table.df
+```
+
+*Let's calculate Constant that Returns to Scale (CRS)*
+```{r}
+x <- matrix(c(100,300,320,500,350,340,
+            0.3,0.6,1.2,2.0,1.4,0.7),ncol=2)
+
+y <- matrix(c(15000,15000,40000,28000,20000,14000,
+                3500,20000,11000,42000,25000,15000),ncol=2)
+
+colnames(y) <- c("Reimbursed_Patient_Days","Privately_Paid_Patient_Days")
+
+colnames(x) <- c("Staff_Hours_Per_Day","Supplies_Per_Day")
+
+D_E_A_crs<-dea(x, y, RTS = "crs")
+D_E_A_crs
+
+peers(D_E_A_crs)
+lambda(D_E_A_crs)
+```
+*CRS Observations*
+
+(a.) We see that Facility 1, Facility 2, Facility 3  and Facility 4 are efficient.
+
+(b.) We can also see that Facility 1, Facility 2 and Facility 4 are the peer members for Facility 5 and Facility 6 which are the inefficient facilities.
+
+(c.) Facility 5 is 97.75 % efficient leaving 2.25 % as inefficient.
+
+(d.) And Facility 6 is 86.75 % efficient leaving 13.25 % as inefficient.
+
+*Calculating the Decreasing returns to Scale (DRS)*
+```{r}
+D_E_A_drs <- dea(x, y, RTS = "drs")
+D_E_A_drs
+
+
+peers(D_E_A_drs)
+lambda(D_E_A_drs)
+```
+*DRS Observations*
+
+1. We can to see that Facility 1, Facility 2, Facility 3  and Facility 4 are efficient.*
+
+2. We can also see that Facility 1, Facility 2 and Facility 4 are the peer members for Facility 5 and Facility 6 which are inefficient facilities.*
+
+3. Facility 5 is 97.75 % efficient leaving 2.25 % as inefficient and Facility 6 is 86.75 % efficient i.e., leaving 13.25 % as inefficient.*
+
+**Calculating the Free Disposability Hull (FDH)**
+```{r}
+D_E_A_fdh <- dea(x, y, RTS = "fdh")
+D_E_A_fdh
+
+peers(D_E_A_fdh)
+lambda(D_E_A_fdh)
+```
+*FDH Observations* 
+
+All the DMUs are efficient. Usually due to the principal which FDH technique follows there by detecting even a small level of efficiency.
+
+**Calculating Increasing Returns to Scale (IRS)**
+```{r}
+D_E_A_irs <- dea(x, y, RTS = "irs")
+D_E_A_irs
+
+peers(D_E_A_irs)
+lambda(D_E_A_irs)
+```
+*IRS Observations*
+
+1. We get to see that Facility 1, Facility 2, Facility 3, Facility 4 and Facility 5 are efficient.*
+
+2. Also, we get to see that Facility 1, Facility 2 and Facility 5 are the peer members for Facility 6 which is inefficient facility.*
+
+3. Facility 6 is 89.63 % efficient leaving 10.37 % as inefficient.*
+
+*Calculating Variable Returns to Scale (VRS)*
+```{r}
+D_E_A_vrs <- dea(x, y, RTS = "vrs")
+D_E_A_vrs
+
+peers(D_E_A_vrs)
+lambda(D_E_A_vrs)
+```
+*VRS Observations* 
+
+1. We get to see that Facility 1, Facility 2, Facility 3, Facility 4 and Facility 5 are efficient.
+
+2. Also, we get to see that Facility 1, Facility 2 and Facility 5 are the peer members for Facility 6 which is the only inefficient facility.
+
+3. Facility 6 is 89.63 % efficient leaving 10.37 % as inefficient.
+
+*Calculating Free Replicability Hull (FRH)*
+```{r}
+#Here FRH is calculated by specifying RTS = "add"
+D_E_A_frh <- dea(x, y, RTS = "add")
+D_E_A_frh
+
+peers(D_E_A_frh)
+lambda(D_E_A_frh)
+```
+*FRH Observations* 
+
+All the DMUs are efficient. It follows the no convexity assumption it  ensures that the o/p is free from disposal and replication.
+
+**Summary of Results (Inefficient DMUs)**
+```{r}
+data.frame.summarise.inefficient <- matrix(c("CRS","DRS","IRS","VRS","FDH","FRH",
+2,2,1,1,0,0,
+"Facility 5 & 6", "Facility 5 & 6","Facility 6", "Facility 6", "-","-",
+"97.75% & 86.7%","97.75% & 86.7%","89.63%","89.63%","-","-",
+"Facility 1, 2 & 4","Facility 1, 2 & 4","Facility 1, 2 & 5","Facility 1, 2 & 5","-","-",
+"0.2, 0.08, 0.54 and 0.34, 0.4, 0.13", "0.2, 0.08, 0.54 and 0.34, 0.4, 0.13", "0.4, 0.34 and 0.26", "0.4, 0.34 and 0.26", "-","-"),ncol=6,byrow=F)
+
+
+colnames(data.frame.summarise.inefficient) <- c("RTS","Count_Inefficient_DMUs","Name_DMUs","%_Inefficiency","Peers","Lambda")
+
+as.table(data.frame.summarise.inefficient)
+```
+**Summary of Results (Efficient DMUs)**
+```{r}
+data.frame.summarise.efficient <- matrix(c("CRS","DRS","IRS","VRS","FDH","FRH",
+"Facility 1, 2, 3 & 4","Facility 1, 2, 3 & 4","Facility 1, 2, 3, 4 & 5", "Facility 1, 2, 3, 4 & 5", "All DMUs", "All DMUs"), ncol = 2, byrow=F)
+
+colnames(data.frame.summarise.efficient) <- c("RTS", "Efficient_DMUs")
+
+as.table(data.frame.summarise.efficient)
+```
+***Interpretation of the DEA Analysis***
+
+1.The Free Disposability and Free Replicability Hull (FDH & FRH), which makes no assumptions on convexity, is regarded as a non-parametric method for evaluating DMU efficacy.
+
+2. Constant Returns to Scale (CRS) is the original scale and is used by the vast majority of organizations.
+
+3.Before interpreting, it is critical to understand the fluctuations in the scales (RTS).
+
+4.Decreasing, Increasing, and Varying Returns to Scale (DRS, IRS, and VRS) dispersion scales assist us in identifying what to increase and what to reduce based on the deployment of information.
+
+***DRS - Decreasing Returns to Scale***
+
+1.Based on our early research, we identified the following. Furthermore, the units of DMU(4peer)'s are 1, 2, and 4, with relative weights of 0.2, 0.08, and 0.54.
+
+2.The data indicate that DMUs 1, 2, 3, and 4 are effective. DMU(5) is 97.75% efficient, whereas DMU(6) is 86.7% efficient. 
+
+3.DMU(6)'s peer units are 1, 2, and 4, with weights of 0.34, 0.4, and 0.13, respectively.
+
+4.This scale shows us whether there are any prospective DMUs where we can scale the processes, such as looking at the inefficient DMUs 5 and 6 in this case. Because this is the original base scale, it may also be derived by inspecting the CRS values.
+
+***CRS - Constant Returns to Scale***
+
+1.The data above indicate that DMUs 1, 2, 3, and 4 are productive. Only 97.75% of DMU(5) and 86.7% of DMU(6) are being used successfully. This was identified as a result of our initial research.
+
+2. In addition, the units of DMU(4peer) are 1, 2, and 4, with weights of 0.2, 0.08, and 0.54, respectively. DMU(6)'s peer units are 1, 2, and 4, with weights of 0.34, 0.4, and 0.13, respectively.
+
+3. In summary, CRS allows us to assess if any potential DMUs, in this example DMUs 1, 2, 3, and 4, may be scaled up or down.
+
+***IRS - Increasing Returns to Scale***
+
+1.The results indicate that DMUs 1, 2, 3, and 4 are efficient. DMU(5) has a 97.75% efficiency whereas DMU(6) has an 86.7% efficiency. We noticed this after completing preliminary study. Furthermore, DMU(4)'s peer units are 1, 2, and 4, with relative weights of 0.2, 0.08, and 0.54, respectively. Similarly, the peer units for DMU(6) are 1, 2, and 4, with weights of 0.34, 0.4, and 0.13, respectively.
+
+2.This scale shows us whether there are any feasible DMUs where we may scale the operations, such as by looking at the inefficient DMUs in this case, DMU 5 and 6. Because this is the original base scale, it may also be accessed by examining the CRS values.
+
+
+***VRS - Variable Returns to Scale***
+
+1.Based on our early research, we identified a few things.  The results indicate that DMUs 1, 2, 3, 4, and 5 are effective. DMU(6) has a low efficiency of 89.63%.
+
+2.In addition, DMU(6) contains three peer units with relative weights of 0.4, 0.34, and 0.26, respectively.
+
+3.Variable Returns to Scale assists us in understanding the scale of activities with changes in the input and output factors, either rising or decreasing or employing both.
+
+***FRH - Free Replicability Hull***
+
+1.The FRH results show that all of the DMUs are efficient.This is primarily due to the assumption of no convexity, and in general, this technique allows the scale to capture even the smallest level of efficiency that is free of replication and disposal.
+
+2.The peer values, i.e. neighbors, and lambda values, i.e. weights of the peers, would only be retrieved to the inefficient DMUs. Efficient DMUs lack peers and lambda weights.
+
+
+***FDH - Free Disposability Hull***
+
+The outcomes indicate that all of the DMUs are efficient. This is due mostly to the assumption of no convexity, and this method allows the scale to capture even an extremely small amount of efficiency.
+
+***Conclusion***
+
+1. It is critical to emphasize that DEA is an extremely useful tool for any organization in determining which DMU is the best, i.e. which of the Decision Making Units should be optimized so that the output increases, decreases or changes in any manner by providing input into it.
+
+2. Based on their needs, an organization may choose which RTS, or Returns to Scale, to use; each of these scales is essential in its own right.
+
+
+***Plotting the Graphs***
+
+***CRS Plot***
+```{r}
+dea.plot(x, y, RTS='crs')
+```
+
+***DRS Plot***
+```{r}
+dea.plot(x,y,RTS="vrs") 
+```
+
+***IRS Plot***
+```{r}
+dea.plot(x,y,RTS="irs")
+```
+
+***VRS Plot***
+```{r}
+dea.plot(x,y,RTS="vrs")
+#tinytex::install_tinytex()
+
+```
+
+***FDH Plot***
+```{r}
+dea.plot(x,y,RTS="fdh")
+```
+
+***FRH Plot***
+```{r}
+dea.plot(x,y,RTS="add")
+```
+
+
